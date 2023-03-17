@@ -189,7 +189,7 @@ namespace dotnetCore_API.Services
                 Bitmap QrBitmap = QrCode.GetGraphic(60);
 
                 string Banner1ImagePath = Path.Combine(_environment.ContentRootPath, @"wwwroot\img\qr.png");
-                var logoImage = new Bitmap("D://C#//qr.png"); 
+                var logoImage = new Bitmap(Banner1ImagePath); //"D://C#//qr.png"
                 var logoSize = new Size(QrBitmap.Width / 4, QrBitmap.Height / 7);
                 var logoPosition = new Point((QrBitmap.Width - logoSize.Width) / 2, (QrBitmap.Height - logoSize.Height) / 2);
                 logoPosition.X += 38;

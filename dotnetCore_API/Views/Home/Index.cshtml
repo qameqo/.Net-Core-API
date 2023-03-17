@@ -32,7 +32,6 @@
             };
             var Gen = function () {
                 GenQR();
-                GetCust();
             };
 
             //document.getElementById('truewallet').onclick = wallet;
@@ -75,7 +74,10 @@
                     beforeSend: function (xhr, settings) { xhr.setRequestHeader('Authorization', 'Bearer ' + token.token); }, //set tokenString before send
                     success: function (data, response) {
                         console.log(response, data);
-                        $("#imgqr").attr('src', data.data.result.path);
+                        $("#imgqr").attr('src', data.data.result.path).css({
+                            'height': '300px',
+                            'width':'300px'
+                        });
                     },
                     failure: function (response) {
                         console.log(response.responseText);
