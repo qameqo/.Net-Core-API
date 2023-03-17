@@ -1,0 +1,146 @@
+﻿@model dotnetCore_API.Models.IndexModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.js" integrity="sha512-WNLxfP/8cVYL9sj8Jnp6et0BkubLP31jhTG9vhL/F5uEZmg5wEzKoXp1kJslzPQWwPT1eyMiSxlKCgzHLOTOTQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    <div>
+        <p>@string.Format("IP: {0}", Model.IP)</p>
+        <p>@string.Format("Name: {0} : {1}", Model.AssemblyName, Model.Env)</p>
+        <p>@string.Format("Version: {0} ({1})", Model.AssemblyVersion, Model.Modified)</p>
+        @*<button id="truewallet">truewallet</button>
+        <button id="creditcard">credit_card</button>
+        <button id="btnGenQR">GenQR</button>
+        <img src="" alt="Alternate Text" id="imgqr" />*@
+    </div>
+    <hr />
+    <footer>
+        <p>@DateTime.Now.ToString("yyyy") - @Model.AssemblyName</p>
+        <script>
+            var wallet = function () {
+                GetCharge();
+            };
+            var credit = function () {
+                SourceOmise();
+            };
+            var Gen = function () {
+                GenQR();
+                GetCust();
+            };
+
+            //document.getElementById('truewallet').onclick = wallet;
+            //document.getElementById('creditcard').onclick = credit;
+            //document.getElementById('btnGenQR').onclick = Gen;
+
+            function SourceOmise() { //credit
+                var url = "api/Omise/PayCreditCard/";
+                var obj = {};
+                obj.exp_month = 2;
+                obj.exp_year = 2025;
+                obj.name = "JOHN DOE";
+                obj.number = "4242424242424242";
+                obj.security_code = "123";
+                console.log(obj);
+                $.post(url, JSON.stringify(obj), function (data, result) {
+                    console.log(result, data);
+                });
+            }
+            function GetCharge() { //truemoney
+                var url = "api/Omise/PayTrueWallet/";
+                $.post(url,null, function (data, result) {
+                    console.log(result, data);
+                    window.location.href = data;
+                });
+            }
+
+
+            async function GenQR() { //promptpay qr
+                var url = "api/Omise/GenQR/";
+                var obj = {};
+                obj.amount = "10";
+                var token = await BuildToken();
+                console.log(token.token);
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(obj),
+                    beforeSend: function (xhr, settings) { xhr.setRequestHeader('Authorization', 'Bearer ' + token.token); }, //set tokenString before send
+                    success: function (data, response) {
+                        console.log(response, data);
+                        $("#imgqr").attr('src', data.data.result.path);
+                    },
+                    failure: function (response) {
+                        console.log(response.responseText);
+                    },
+                    error: function (response) {
+                        console.log(response.responseText);
+                    }
+                });
+                
+            }
+            async function BuildToken() {
+                var url = "api/Token/BuildToken";
+                var obj = {};
+                obj.Username = "qameqo";
+                obj.Password = "qameqo";
+                obj.Issuer = "qameqo";
+                obj.Roles = "user";
+                obj.ExpireMinutes = 3;
+                var result = await PostData(url, obj);
+                return result;
+               
+            }
+
+
+            function xhr_request_internal(_url, _datajson, type, _callback) {
+                $.ajax({
+                    type: type,
+                    url: _url,
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(_datajson),
+                    success: function (result) {
+                        console.log(result);
+                        // return result;
+                        if (result != null || result != "") {
+                            return _callback(result);
+                        }
+                        else {
+                            return _callback(result);
+                        }
+                    },
+                    error: function (response) {
+                        alert("กรุณาลองใหม่อีกครั้ง..");
+                    }
+                });
+            }
+            async function PostData(_url, _datajson) {
+                const result = await $.ajax({
+                    type: "POST",
+                    url: _url,
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(_datajson),
+                    async: false
+                });
+                return result;
+            }
+            async function GetData(_url) {
+                const result = await $.ajax({
+                    type: "GET",
+                    url: _url,
+                    //contentType: 'application/json; charset=UTF-8',
+                    async: false
+                });
+                return result;
+            }
+        </script>
+    </footer>
+</body>
+</html>
