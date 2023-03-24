@@ -17,8 +17,9 @@
         <p>@string.Format("Version: {0} ({1})", Model.AssemblyVersion, Model.Modified)</p>
         @*<button id="truewallet">truewallet</button>
         <button id="creditcard">credit_card</button>
+        <img src="" alt="Alternate Text" id="imgqr" />
         <button id="btnGenQR">GenQR</button>
-        <img src="" alt="Alternate Text" id="imgqr" />*@
+        <div id="divdes"></div>*@
     </div>
     <hr />
     <footer>
@@ -59,8 +60,35 @@
                 });
             }
 
+            function GetTypeOfLeave()
+            {
+                var url = "api/TypeLeave/GetTypeOfLeave";
+                var token = await BuildToken();
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    contentType: 'application/json; charset=UTF-8',
+                    beforeSend: function (xhr, settings) { xhr.setRequestHeader('Authorization', 'Bearer ' + token.token); }, //set tokenString before send
+                    success: function (data, response) {
+                        console.log(response, data);
+                        var des = data.data[0].description.split(',');
+                        var html = "";
+                        $.each(des, function (i, d) {
+                            html += "<p>" + d + "</p>";
+                        });
+                        $("#divdes").append(html);
+                    },
+                    failure: function (response) {
+                        console.log(response.responseText);
+                    },
+                    error: function (response) {
+                        console.log(response.responseText);
+                    }
+                });
+                
+            }
 
-            async function GenQR() { //promptpay qr
+            async function GenQR() { //promptpay qr 
                 var url = "api/Omise/GenQR/";
                 var obj = {};
                 obj.amount = "10";
@@ -86,7 +114,6 @@
                         console.log(response.responseText);
                     }
                 });
-                
             }
             async function BuildToken() {
                 var url = "api/Token/BuildToken";

@@ -18,6 +18,7 @@ namespace dotnetCore_API.Models
         public string update_by { get; set; }
         public DateTime update_date { get; set; }
         public string del { get; set; }
+        public string id_emp { get; set; }
         public string str_create_date => create_date.ToString("dd/MM/yyyy HH:mm:ss");
         public string str_Update_date => update_date.ToString("dd/MM/yyyy HH:mm:ss");
     }

@@ -20,17 +20,17 @@ namespace dotnetCore_API.Services
             _dbConn = dbConn;
         }
 
-        public List<CustomerInfoModel> GetCustomerInfo(string idCard) 
+        public List<CustomerInfoModel> GetCustomerInfo(string idEmp) 
         {
             try
             {
                 var DS = new DataSet();
                 using (var con = _dbConn.GetConnection())
                 {
-                    string query = @"SELECT * FROM Customer_Info WHERE del = ''";
-                    if (!string.IsNullOrEmpty(idCard))
+                    string query = @"SELECT * FROM Employee_Info WHERE del = ''";
+                    if (!string.IsNullOrEmpty(idEmp))
                     {
-                        query += $" AND id_card = '{idCard}'";
+                        query += $" AND id_emp = '{idEmp}'";
                     }
                     SqlDataAdapter cmd = new SqlDataAdapter(query, con);
                     cmd.SelectCommand.CommandType = CommandType.Text;
@@ -54,12 +54,17 @@ namespace dotnetCore_API.Services
             var response = new ResponseModel();
             try
             {
+                var GetlatestEmp = GetCustomerInfo("");
+                var lastEmp = GetlatestEmp.OrderByDescending(x => x.create_date).FirstOrDefault();
+                string emp =  lastEmp.id_emp.Substring(0,3);
+                int number = int.Parse(lastEmp.id_emp.Substring(3));
+
                 var result = false;
                 int res;
                 using (var con = _dbConn.GetConnection())
                 {
-                    string query = @"INSERT INTO Customer_Info (id,id_card,fname,lname,age,sex,create_by,create_date,update_by,update_date,del)
-                    VALUES (@id,@id_card,@fname,@lname,@age,@sex,@crt_by,@crt_dt,@upd_by,@upd_dt,@del)";
+                    string query = @"INSERT INTO Employee_Info (id,id_card,fname,lname,age,sex,create_by,create_date,update_by,update_date,del,id_emp)
+                    VALUES (@id,@id_card,@fname,@lname,@age,@sex,@crt_by,@crt_dt,@upd_by,@upd_dt,@del,@id_emp)";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.CommandType = CommandType.Text;
                     cmd.Parameters.AddWithValue("@id", Guid.NewGuid());
@@ -73,6 +78,7 @@ namespace dotnetCore_API.Services
                     cmd.Parameters.AddWithValue("@upd_by", data.fname.Trim());
                     cmd.Parameters.AddWithValue("@upd_dt", DateTime.Now);
                     cmd.Parameters.AddWithValue("@del", string.Empty);
+                    cmd.Parameters.AddWithValue("@id_emp", emp + (number + 1).ToString());
                     res = await cmd.ExecuteNonQueryAsync();
                     result = (res == 1) ? true : false;
                     con.Close();
@@ -108,11 +114,11 @@ namespace dotnetCore_API.Services
                 int res;
                 using (var con = _dbConn.GetConnection())
                 {
-                    string query = @"UPDATE Customer_Info SET fname = @fname, lname = @lname, age = @age, sex = @sex, update_by = @upd_by, update_date = @upd_dt 
-                    WHERE id_card = @id_card";
+                    string query = @"UPDATE Employee_Info SET fname = @fname, lname = @lname, age = @age, sex = @sex, update_by = @upd_by, update_date = @upd_dt 
+                    WHERE id_emp = @id_emp";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.AddWithValue("@id_card", data.id_card.Trim());
+                    cmd.Parameters.AddWithValue("@id_emp", data.id_emp.Trim());
                     cmd.Parameters.AddWithValue("@fname", data.fname.Trim());
                     cmd.Parameters.AddWithValue("@lname", data.lname.Trim());
                     cmd.Parameters.AddWithValue("@age", data.age);
@@ -154,10 +160,10 @@ namespace dotnetCore_API.Services
                 int res;
                 using (var con = _dbConn.GetConnection())
                 {
-                    string query = @"UPDATE Customer_Info SET del = @del WHERE id_card = @id_card";
+                    string query = @"UPDATE Employee_Info SET del = @del WHERE id_emp = @id_emp";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.AddWithValue("@id_card", (!string.IsNullOrEmpty(data.id_card))? data.id_card.Trim():"");
+                    cmd.Parameters.AddWithValue("@id_emp", (!string.IsNullOrEmpty(data.id_emp))? data.id_emp.Trim():"");
                     cmd.Parameters.AddWithValue("@del", 'X');
                     res = await cmd.ExecuteNonQueryAsync();
                     result = (res == 1) ? true : false;
@@ -194,10 +200,10 @@ namespace dotnetCore_API.Services
                 int res;
                 using (var con = _dbConn.GetConnection())
                 {
-                    string query = @"DELETE FROM Customer_Info WHERE id_card = @id_card";
+                    string query = @"DELETE FROM Employee_Info WHERE id_emp = @id_emp";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.AddWithValue("@id_card", (!string.IsNullOrEmpty(data.id_card)) ? data.id_card.Trim() : "");
+                    cmd.Parameters.AddWithValue("@id_emp", (!string.IsNullOrEmpty(data.id_emp)) ? data.id_emp.Trim() : "");
                     res = await cmd.ExecuteNonQueryAsync();
                     result = (res == 1) ? true : false;
                     con.Close();
