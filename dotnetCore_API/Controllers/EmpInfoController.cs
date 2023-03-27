@@ -20,27 +20,28 @@ namespace dotnetCore_API.Controllers
 {
     [Route("api/[Controller]")]
     [ApiController]
-    public class CustInfoController : ControllerBase
+    public class EmpInfoController : ControllerBase
     {
-        private readonly ICustomerInfoServices _cusServices;
-        public CustInfoController(ICustomerInfoServices cusServices)
+        private readonly IEmployeeInfoServices _cusServices;
+        public EmpInfoController(IEmployeeInfoServices cusServices)
         {
             _cusServices = cusServices;
         }
         [HttpPost]
-        [Route("GetCustomerInfo")]
-        public IActionResult GetCustomerInfo(CustomerInfoModel data)
+        [Route("GetEmployeeInfo")]
+        public IActionResult GetEmployeeInfo(EmployeeInfoModel data)
         {
             var response = new ResponseModel();
             try
             {
-                response.data = _cusServices.GetCustomerInfo(data.id_emp);
+                response.data = _cusServices.GetEmployeeInfo(data.id_emp);
                 response.success = true;
                 response.status = 200;
                 return Ok(response);
             }
             catch (Exception ex)
             {
+                response.status = 500;
                 response.success = false;
                 response.message = ex.Message.ToString();
                 return BadRequest(response);
@@ -48,31 +49,31 @@ namespace dotnetCore_API.Controllers
         }
 
         [HttpPost]
-        [Route("AddCustomerInfo")]
-        public async Task<IActionResult> AddCustomerInfo(CustomerInfoModel data)
+        [Route("AddEmployeeInfo")]
+        public async Task<IActionResult> AddEmployeeInfo(EmployeeInfoModel data)
         {
-            return Ok(await _cusServices.AddCustomerInfo(data));
+            return Ok(await _cusServices.AddEmployeeInfo(data));
         }
 
         [HttpPost]
-        [Route("ChangeCustomerInfo")]
-        public async Task<IActionResult> ChangeCustomerInfo(CustomerInfoModel data)
+        [Route("ChangeEmployeeInfo")]
+        public async Task<IActionResult> ChangeEmployeeInfo(EmployeeInfoModel data)
         {
-            return Ok(await _cusServices.ChangeCustomerInfo(data));
+            return Ok(await _cusServices.ChangeEmployeeInfo(data));
         }
 
         [HttpPost]
-        [Route("DeleteCustomerInfo")]
-        public async Task<IActionResult> DeleteCustomerInfo(CustomerInfoModel data)
+        [Route("DeleteEmployeeInfo")]
+        public async Task<IActionResult> DeleteEmployeeInfo(EmployeeInfoModel data)
         {
-            return Ok(await _cusServices.DeleteCustomerInfo(data));
+            return Ok(await _cusServices.DeleteEmployeeInfo(data));
         }
 
         [HttpPost]
-        [Route("RemoveCustomerInfo")]
-        public async Task<IActionResult> RemoveCustomerInfo(CustomerInfoModel data)
+        [Route("RemoveEmployeeInfo")]
+        public async Task<IActionResult> RemoveEmployeeInfo(EmployeeInfoModel data)
         {
-            return Ok(await _cusServices.RemoveCustomerInfo(data));
+            return Ok(await _cusServices.RemoveEmployeeInfo(data));
         }
     }
 }

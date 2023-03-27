@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace dotnetCore_API.Models
 {
-    public class CustomerInfoModel
+    public class EmployeeInfoModel
     {
         public string id { get; set; }
         public string id_card { get; set; }

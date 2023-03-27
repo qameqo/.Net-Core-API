@@ -29,11 +29,12 @@ namespace dotnetCore_API.Services
                     SqlDataAdapter cmd = new SqlDataAdapter(query, con);
                     cmd.SelectCommand.CommandType = CommandType.Text;
                     cmd.Fill(DS);
-                    if (DS == null && DS.Tables.Count < 1)
+                    cmd.Dispose();
+                    con.Close();
+                    if (DS == null || DS.Tables.Count == 0 || DS.Tables[0].Rows.Count == 0)
                     {
                         throw new Exception($"Data Not Found");
                     }
-                    con.Close();
                 }
                 var obj = JsonConvert.SerializeObject(DS.Tables[0]);
                 return JsonConvert.DeserializeObject<List<TypeOfLeaveModel>>(obj.ToString()).OrderBy(x => x.id).ToList();

@@ -20,7 +20,7 @@ namespace dotnetCore_API.Controllers
 
         [HttpPost]
         [Route("GetTypeOfLeave")]
-        public IActionResult GetCustomerInfo()
+        public IActionResult GetTypeOfLeave()
         {
             var response = new ResponseModel();
             try
@@ -32,6 +32,7 @@ namespace dotnetCore_API.Controllers
             }
             catch (Exception ex)
             {
+                response.status = 500;
                 response.success = false;
                 response.message = ex.Message.ToString();
                 return BadRequest(response);

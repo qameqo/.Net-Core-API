@@ -11,5 +11,7 @@ namespace dotnetCore_API.Center.Interfaces
     public interface IDBCenter
     {
         public SqlConnection GetConnection();
+        public bool BulkInsert(DataTable dt, string tableName,ref string ErrMsg);
+        public bool BulkUpdate(List<string> data, ref string ErrMsg);
     }
 }

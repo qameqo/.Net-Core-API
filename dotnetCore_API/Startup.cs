@@ -128,7 +128,7 @@ namespace dotnetCore_API
                 option.Conventions.Add(new JwtAuthorizationConvention("JwtPolicy", Convert.ToBoolean(Configuration["Jwt:Authen"]), Configuration["Jwt:ActionIgnore"]?.Split(',')));
             });
 
-            services.AddScoped<ICustomerInfoServices, CustomerInfoServices>();
+            services.AddScoped<IEmployeeInfoServices, EmployeeInfoServices>();
             services.AddScoped<IDBCenter, DBCenter>();
             services.AddAutoTransient();
         }

@@ -12,15 +12,15 @@ using System.Threading.Tasks;
 
 namespace dotnetCore_API.Services
 {
-    public class CustomerInfoServices : ICustomerInfoServices
+    public class EmployeeInfoServices : IEmployeeInfoServices
     {
         private readonly IDBCenter _dbConn;
-        public CustomerInfoServices(IDBCenter dbConn)
+        public EmployeeInfoServices(IDBCenter dbConn)
         {
             _dbConn = dbConn;
         }
 
-        public List<CustomerInfoModel> GetCustomerInfo(string idEmp) 
+        public List<EmployeeInfoModel> GetEmployeeInfo(string idEmp) 
         {
             try
             {
@@ -35,26 +35,27 @@ namespace dotnetCore_API.Services
                     SqlDataAdapter cmd = new SqlDataAdapter(query, con);
                     cmd.SelectCommand.CommandType = CommandType.Text;
                     cmd.Fill(DS);
-                    if (DS == null && DS.Tables.Count < 1)
-                    {
-                        throw new Exception($"Data Not Found");
-                    }
+                    cmd.Dispose();
                     con.Close();
+                    if (DS == null || DS.Tables.Count == 0 || DS.Tables[0].Rows.Count == 0) 
+                    {
+                        throw new Exception($"Data Employee Not Found");
+                    }
                 }
                 var obj = JsonConvert.SerializeObject(DS.Tables[0]);
-                return JsonConvert.DeserializeObject<List<CustomerInfoModel>>(obj.ToString()).OrderByDescending(x => x.create_date).ToList();
+                return JsonConvert.DeserializeObject<List<EmployeeInfoModel>>(obj.ToString()).OrderByDescending(x => x.create_date).ToList();
             }
             catch (Exception ex)
             {
                 throw ex;
             }
         }
-        public async Task<ResponseModel> AddCustomerInfo(CustomerInfoModel data)
+        public async Task<ResponseModel> AddEmployeeInfo(EmployeeInfoModel data)
         {
             var response = new ResponseModel();
             try
             {
-                var GetlatestEmp = GetCustomerInfo("");
+                var GetlatestEmp = GetEmployeeInfo("");
                 var lastEmp = GetlatestEmp.OrderByDescending(x => x.create_date).FirstOrDefault();
                 string emp =  lastEmp.id_emp.Substring(0,3);
                 int number = int.Parse(lastEmp.id_emp.Substring(3));
@@ -81,19 +82,20 @@ namespace dotnetCore_API.Services
                     cmd.Parameters.AddWithValue("@id_emp", emp + (number + 1).ToString());
                     res = await cmd.ExecuteNonQueryAsync();
                     result = (res == 1) ? true : false;
+                    con.Dispose();
                     con.Close();
                 }
                 if (result)
                 {
                     response.status = 200;
                     response.success = true;
-                    response.message = "Add Data CustomerInfo Success!";
+                    response.message = "Add Data EmployeeInfo Success!";
                 }
                 else
                 {
                     response.status = 200;
                     response.success = false;
-                    response.message = "Add Data CustomerInfo fail!";
+                    response.message = "Add Data EmployeeInfo fail!";
                 }
                 return response;
             }
@@ -105,7 +107,7 @@ namespace dotnetCore_API.Services
                 return response;
             }
         }
-        public async Task<ResponseModel> ChangeCustomerInfo(CustomerInfoModel data)
+        public async Task<ResponseModel> ChangeEmployeeInfo(EmployeeInfoModel data)
         {
             var response = new ResponseModel();
             try
@@ -127,19 +129,20 @@ namespace dotnetCore_API.Services
                     cmd.Parameters.AddWithValue("@upd_dt", DateTime.Now);
                     res = await cmd.ExecuteNonQueryAsync();
                     result = (res == 1) ? true : false;
+                    con.Dispose();
                     con.Close();
                 }
                 if (result)
                 {
                     response.status = 200;
                     response.success = true;
-                    response.message = "Update Data CustomerInfo Success!";
+                    response.message = "Update Data EmployeeInfo Success!";
                 }
                 else
                 {
                     response.status = 200;
                     response.success = false;
-                    response.message = "Update Data CustomerInfo fail!";
+                    response.message = "Update Data EmployeeInfo fail!";
                 }
                 return response;
             }
@@ -151,7 +154,7 @@ namespace dotnetCore_API.Services
                 return response;
             }
         }
-        public async Task<ResponseModel> DeleteCustomerInfo(CustomerInfoModel data)
+        public async Task<ResponseModel> DeleteEmployeeInfo(EmployeeInfoModel data)
         {
             var response = new ResponseModel();
             try
@@ -167,19 +170,20 @@ namespace dotnetCore_API.Services
                     cmd.Parameters.AddWithValue("@del", 'X');
                     res = await cmd.ExecuteNonQueryAsync();
                     result = (res == 1) ? true : false;
+                    con.Dispose();
                     con.Close();
                 }
                 if (result)
                 {
                     response.status = 200;
                     response.success = true;
-                    response.message = "Delete Data CustomerInfo Success!";
+                    response.message = "Delete Data EmployeeInfo Success!";
                 }
                 else
                 {
                     response.status = 200;
                     response.success = false;
-                    response.message = "Delete Data CustomerInfo fail!";
+                    response.message = "Delete Data EmployeeInfo fail!";
                 }
                 return response;
             }
@@ -191,7 +195,7 @@ namespace dotnetCore_API.Services
                 return response;
             }
         }
-        public async Task<ResponseModel> RemoveCustomerInfo(CustomerInfoModel data)
+        public async Task<ResponseModel> RemoveEmployeeInfo(EmployeeInfoModel data)
         {
             var response = new ResponseModel();
             try
@@ -206,19 +210,20 @@ namespace dotnetCore_API.Services
                     cmd.Parameters.AddWithValue("@id_emp", (!string.IsNullOrEmpty(data.id_emp)) ? data.id_emp.Trim() : "");
                     res = await cmd.ExecuteNonQueryAsync();
                     result = (res == 1) ? true : false;
+                    con.Dispose();
                     con.Close();
                 }
                 if (result)
                 {
                     response.status = 200;
                     response.success = true;
-                    response.message = "Remove Data CustomerInfo Success!";
+                    response.message = "Remove Data EmployeeInfo Success!";
                 }
                 else
                 {
                     response.status = 200;
                     response.success = false;
-                    response.message = "Remove Data CustomerInfo fail!";
+                    response.message = "Remove Data EmployeeInfo fail!";
                 }
                 return response;
             }
