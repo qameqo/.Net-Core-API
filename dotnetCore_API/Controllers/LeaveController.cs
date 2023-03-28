@@ -1,10 +1,9 @@
 ﻿using dotnetCore_API.Models;
 using dotnetCore_API.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace dotnetCore_API.Controllers
 {
@@ -13,9 +12,11 @@ namespace dotnetCore_API.Controllers
     public class LeaveController : ControllerBase
     {
         private readonly ILeaveServices _leaveServices;
-        public LeaveController(ILeaveServices leaveServices)
+        private readonly IWebHostEnvironment _environment;
+        public LeaveController(ILeaveServices leaveServices, IWebHostEnvironment environment)
         {
             _leaveServices = leaveServices;
+            _environment = environment;
         }
 
         [HttpPost]

@@ -131,6 +131,7 @@ namespace dotnetCore_API
             services.AddScoped<IEmployeeInfoServices, EmployeeInfoServices>();
             services.AddScoped<IDBCenter, DBCenter>();
             services.AddAutoTransient();
+            services.AddHttpContextAccessor();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -162,6 +163,7 @@ namespace dotnetCore_API
             });
 
             app.UseCors("CorsPolicy");
+            app.UseStaticFiles();
         }
     }
     public class JwtAuthorizationConvention : IApplicationModelConvention

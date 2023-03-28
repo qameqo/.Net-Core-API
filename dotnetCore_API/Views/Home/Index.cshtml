@@ -15,11 +15,16 @@
         <p>@string.Format("IP: {0}", Model.IP)</p>
         <p>@string.Format("Name: {0} : {1}", Model.AssemblyName, Model.Env)</p>
         <p>@string.Format("Version: {0} ({1})", Model.AssemblyVersion, Model.Modified)</p>
-        @*<button id="truewallet">truewallet</button>
+        @*<input type="file" id="imageFile" accept="image/*" multiple />
+        <button id="truewallet">truewallet</button>
         <button id="creditcard">credit_card</button>
+        <input type="text" name="field1" />
+        <input type="text" name="field2" />*@
         <img src="" alt="Alternate Text" id="imgqr" />
+        <div id="divdes"></div>
         <button id="btnGenQR">GenQR</button>
-        <div id="divdes"></div>*@
+        <input type="file" name="files" multiple />
+        <button type="button" onclick="getImage()">Upload</button>
     </div>
     <hr />
     <footer>
@@ -31,13 +36,15 @@
             var credit = function () {
                 SourceOmise();
             };
-            var Gen = function () {
-                GenQR();
+            var Gen = async function () {
+                await GenQR();
+                await GetTypeOfLeave();
+                await getImage();
             };
 
             //document.getElementById('truewallet').onclick = wallet;
             //document.getElementById('creditcard').onclick = credit;
-            //document.getElementById('btnGenQR').onclick = Gen;
+            document.getElementById('btnGenQR').onclick = Gen;
 
             function SourceOmise() { //credit
                 var url = "api/Omise/PayCreditCard/";
@@ -60,7 +67,7 @@
                 });
             }
 
-            function GetTypeOfLeave()
+            async function GetTypeOfLeave()
             {
                 var url = "api/TypeLeave/GetTypeOfLeave";
                 var token = await BuildToken();
@@ -85,10 +92,10 @@
                         console.log(response.responseText);
                     }
                 });
-                
+
             }
 
-            async function GenQR() { //promptpay qr 
+            async function GenQR() { //promptpay qr
                 var url = "api/Omise/GenQR/";
                 var obj = {};
                 obj.amount = "10";
@@ -125,9 +132,55 @@
                 obj.ExpireMinutes = 3;
                 var result = await PostData(url, obj);
                 return result;
-               
+
             }
 
+            async function getImage() {
+                var token = await BuildToken();
+                var formData = new FormData();
+                var files = document.querySelector('input[type=file]').files;
+                for (var i = 0; i < files.length; i++) {
+                    formData.append("Files", files[i]);
+                }
+                formData.append('create_by', "ทด");
+                formData.append('id_leave', "a9c0e5ab-c29a-4f39-9843-3a0fe91ed97b");
+                formData.append('field1', "dddddd");
+                formData.append('field2', "sssss")
+                $.ajax({
+                    url: "api/Evidence/AddEvidence",
+                    type: "POST",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: function (xhr, settings) { xhr.setRequestHeader('Authorization', 'Bearer ' + token.token); }, //set tokenString before send
+                    success: function (response) {
+                        console.log(response);
+                    }
+                });
+
+                //$.ajax({
+                //    method: "POST",
+                //    processData: false,
+                //    mimeType: "multipart/form-data ",
+                //    contentType: "multipart/form-data charset=UTF-8",
+                //    url: "api/Evidence/AddEvidence",
+                //    data: formData,
+                //    beforeSend: function (xhr, settings) { xhr.setRequestHeader('Authorization', 'Bearer ' + token.token); }, //set tokenString before send
+                //    success: function (data, response) {
+                //        console.log(response, data);
+                //        $("#imgqr").attr('src', data).css({
+                //            'height': '300px',
+                //            'width': '300px'
+                //        });
+                //    },
+                //    failure: function (response) {
+                //        console.log(response.responseText);
+                //    },
+                //    error: function (response) {
+                //        console.log(response.responseText);
+                //    }
+                //});
+            }
 
             function xhr_request_internal(_url, _datajson, type, _callback) {
                 $.ajax({

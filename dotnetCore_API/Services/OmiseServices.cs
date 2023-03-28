@@ -20,8 +20,8 @@ namespace dotnetCore_API.Services
     public class OmiseServices : IOmiseServices
     {
         private readonly IConfiguration _config;
-        private readonly IHostingEnvironment _environment;
-        public OmiseServices(IConfiguration config, IHostingEnvironment environment)
+        private readonly IWebHostEnvironment _environment;
+        public OmiseServices(IConfiguration config, IWebHostEnvironment environment)
         {
             _config = config;
             _environment = environment;
