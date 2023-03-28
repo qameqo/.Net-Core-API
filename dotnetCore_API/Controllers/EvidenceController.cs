@@ -1,5 +1,6 @@
 ﻿using dotnetCore_API.Models;
 using dotnetCore_API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -28,6 +29,27 @@ namespace dotnetCore_API.Controllers
         public async Task<IActionResult> AddEvidence([FromForm] EvidenceModel data)
         {
             return Ok(await _eviServices.AddEvidence(data));
+        }
+
+        [HttpPost]
+        [Route("EEvidence")]
+        [AllowAnonymous]
+        //[Consumes("multipart/form-data")]
+        //[Produces("application/json")]
+        public IActionResult EEvidence([FromForm] List<EvidenceModel> model)
+        {
+            string res = "";
+            for (int i = 0; i < model.Count; i++)
+            {
+                if(model[i].Files.Count > 0)
+                {
+                    for (int t = 0; t < model[i].Files.Count; t++)
+                    {
+                        res += "Ok";
+                    }
+                }
+            }
+            return Ok(res);
         }
     }
 }

@@ -15,21 +15,27 @@
         <p>@string.Format("IP: {0}", Model.IP)</p>
         <p>@string.Format("Name: {0} : {1}", Model.AssemblyName, Model.Env)</p>
         <p>@string.Format("Version: {0} ({1})", Model.AssemblyVersion, Model.Modified)</p>
+        @*data-id = id , data-guid = gu_id, value = name_eng || create function create element แล้วใช้ name_eng ไปตั้งชื่อ id ต่อท้าย *@
         @*<input type="file" id="imageFile" accept="image/*" multiple />
         <button id="truewallet">truewallet</button>
         <button id="creditcard">credit_card</button>
         <input type="text" name="field1" />
-        <input type="text" name="field2" />*@
+        <input type="text" name="field2" />
         <img src="" alt="Alternate Text" id="imgqr" />
         <div id="divdes"></div>
         <button id="btnGenQR">GenQR</button>
+        <input type="checkbox" data-id="1" onchange="changeChkbox(this)" name="chk_b" value="ป่วย" />
+        <input type="checkbox" data-id="2" onchange="changeChkbox(this)" name="chk_b" value="พักร้อน" />*@
         <input type="file" name="files" multiple />
-        <button type="button" onclick="getImage()">Upload</button>
+        <button type="button" onclick="Test()">Upload</button>
     </div>
     <hr />
     <footer>
         <p>@DateTime.Now.ToString("yyyy") - @Model.AssemblyName</p>
         <script>
+            $(document).ready(async function () {
+                await GetTypeOfLeave();
+            });
             var wallet = function () {
                 GetCharge();
             };
@@ -37,14 +43,12 @@
                 SourceOmise();
             };
             var Gen = async function () {
-                await GenQR();
-                await GetTypeOfLeave();
-                await getImage();
+                await Test();
             };
 
             //document.getElementById('truewallet').onclick = wallet;
             //document.getElementById('creditcard').onclick = credit;
-            document.getElementById('btnGenQR').onclick = Gen;
+            //document.getElementById('btnGenQR').onclick = Gen;
 
             function SourceOmise() { //credit
                 var url = "api/Omise/PayCreditCard/";
@@ -78,12 +82,17 @@
                     beforeSend: function (xhr, settings) { xhr.setRequestHeader('Authorization', 'Bearer ' + token.token); }, //set tokenString before send
                     success: function (data, response) {
                         console.log(response, data);
-                        var des = data.data[0].description.split(',');
-                        var html = "";
-                        $.each(des, function (i, d) {
-                            html += "<p>" + d + "</p>";
-                        });
-                        $("#divdes").append(html);
+                        var htmlChk = "";
+                        for (var i = 0; i < data.data.length; i++) {
+                            htmlChk += '<input type="checkbox" data-id="' + data.data[i].id + '" data-guid="' + data.data[i].gu_id + '" value= "' + data.data[i].name_th + '" onchange="changeChkbox(this)" name="chk_b" />';
+                        }
+                        $('div').append(htmlChk);
+                        //var des = data.data[0].description.split(',');
+                        //var html = "";
+                        //$.each(des, function (i, d) {
+                        //    html += "<p>" + d + "</p>";
+                        //});
+                        //$("#divdes").append(html);
                     },
                     failure: function (response) {
                         console.log(response.responseText);
@@ -157,29 +166,39 @@
                         console.log(response);
                     }
                 });
-
-                //$.ajax({
-                //    method: "POST",
-                //    processData: false,
-                //    mimeType: "multipart/form-data ",
-                //    contentType: "multipart/form-data charset=UTF-8",
-                //    url: "api/Evidence/AddEvidence",
-                //    data: formData,
-                //    beforeSend: function (xhr, settings) { xhr.setRequestHeader('Authorization', 'Bearer ' + token.token); }, //set tokenString before send
-                //    success: function (data, response) {
-                //        console.log(response, data);
-                //        $("#imgqr").attr('src', data).css({
-                //            'height': '300px',
-                //            'width': '300px'
-                //        });
-                //    },
-                //    failure: function (response) {
-                //        console.log(response.responseText);
-                //    },
-                //    error: function (response) {
-                //        console.log(response.responseText);
-                //    }
-                //});
+            }
+            async function Test() {
+                var token = await BuildToken();
+                var formData = new FormData();
+                var files = document.querySelector('input[type=file]').files;
+                var len = $('input:checkbox:checked'); //$('input[type=checkbox]');
+                for (var i = 0; i < len.length; i++) { //data main
+                    formData.append("model[" + i + "].id_leave", $(len[i]).data('guid'));
+                    formData.append("model[" + i + "].create_by", $(len[i]).val());
+                    for (var t = 0; t < files.length; t++) { //data file
+                        formData.append("model["+ i +"].Files", files[t]);
+                    }
+                }
+                
+                $.ajax({
+                    url: "api/Evidence/EEvidence",
+                    type: "POST",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: function (xhr, settings) { xhr.setRequestHeader('Authorization', 'Bearer ' + token.token); }, //set tokenString before send
+                    success: function (response) {
+                        console.log(response);
+                    }
+                });
+            }
+            function changeChkbox(element) {
+                console.log(element)
+                if (element.checked) {
+                    console.log("checked"); //function create element for please enter leave info by send data-id and value for set id element
+                } else {
+                    console.log("not checked"); //function remove element for please enter leave info
+                }
             }
 
             function xhr_request_internal(_url, _datajson, type, _callback) {
