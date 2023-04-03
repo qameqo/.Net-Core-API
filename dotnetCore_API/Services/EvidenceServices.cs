@@ -29,53 +29,6 @@ namespace dotnetCore_API.Services
             _httpContextAccessor = httpContextAccessor;
 
         }
-        public async Task<ResponseModel> AddEvidence(EvidenceModel data)
-        {
-            ResponseModel response = new ResponseModel();
-            try
-            {
-                if (data.Files == null || data.Files.Count == 0)
-                    throw new Exception("No file was selected.");
-
-                // Process the files
-                foreach (var file in data.Files)
-                {
-                    if (file != null && file.Length > 0)
-                    {
-                        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-
-                        var folderPath = Path.Combine(_env.WebRootPath, "uploads");
-
-                        if (!Directory.Exists(folderPath))
-                            Directory.CreateDirectory(folderPath);
-
-                        var filePath = Path.Combine(folderPath, fileName);
-
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await file.CopyToAsync(stream);
-                        }
-                        string url = SetUrlUploads(fileName);
-                        string ErrMsg = "";
-                        bool res = SaveEvidence(url,data.create_by,data.id_leave, Guid.NewGuid().ToString(), fileName, ref ErrMsg);
-                        if (!res && ErrMsg != "")
-                        {
-                            throw new Exception(ErrMsg);
-                        }
-                    }
-                }
-                response.success = true;
-                response.status = 200;
-                response.message = "Add Image Success!";
-            }
-            catch (Exception ex)
-            {
-                response.success = false;
-                response.message = ex.Message;
-                response.status = 500;
-            }
-            return response;
-        }
         public string SetUrlUploads(string fileName)
         {
             string imageUrl = "";

@@ -16,6 +16,5 @@ namespace dotnetCore_API.Models
         public string update_by { get; set; }
         public DateTime update_date { get; set; }
         public string id_leave { get; set; }
-        public List<IFormFile> Files { get; set; }
     }
 }

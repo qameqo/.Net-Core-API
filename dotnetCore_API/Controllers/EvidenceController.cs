@@ -23,33 +23,10 @@ namespace dotnetCore_API.Controllers
         }
 
         [HttpPost]
-        [Route("AddEvidence")]
-        //[Consumes("multipart/form-data")]
-        //[Produces("application/json")]
-        public async Task<IActionResult> AddEvidence([FromForm] EvidenceModel data)
+        [Route("GetEvidence")]
+        public IActionResult GetEvidence(EvidenceModel data)
         {
-            return Ok(await _eviServices.AddEvidence(data));
-        }
-
-        [HttpPost]
-        [Route("EEvidence")]
-        [AllowAnonymous]
-        //[Consumes("multipart/form-data")]
-        //[Produces("application/json")]
-        public IActionResult EEvidence([FromForm] List<EvidenceModel> model)
-        {
-            string res = "";
-            for (int i = 0; i < model.Count; i++)
-            {
-                if(model[i].Files.Count > 0)
-                {
-                    for (int t = 0; t < model[i].Files.Count; t++)
-                    {
-                        res += "Ok";
-                    }
-                }
-            }
-            return Ok(res);
+            return Ok( _eviServices.GetEvidence(data.id_leave));
         }
     }
 }
