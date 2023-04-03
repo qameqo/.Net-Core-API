@@ -1,12 +1,15 @@
 ﻿using dotnetCore_API.Center.Interfaces;
 using dotnetCore_API.Models;
 using dotnetCore_API.Services.Interfaces;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,10 +19,16 @@ namespace dotnetCore_API.Services
     {
         private readonly IDBCenter _dbConn;
         private readonly IEmployeeInfoServices _cusServices;
-        public LeaveServices(IDBCenter dbConn, IEmployeeInfoServices cusServices)
+        private readonly IWebHostEnvironment _env;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEvidenceServices _eviServices;
+        public LeaveServices(IDBCenter dbConn, IEmployeeInfoServices cusServices, IWebHostEnvironment env , IHttpContextAccessor httpContextAccessor,IEvidenceServices eviServices)
         {
             _dbConn = dbConn;
             _cusServices = cusServices;
+            _env = env;
+            _httpContextAccessor = httpContextAccessor;
+            _eviServices = eviServices;
         }
 
         public List<LeaveModel> GetListLeave(LeaveModel data) 
@@ -173,7 +182,120 @@ namespace dotnetCore_API.Services
                 return response;
             }
         }
-        public ResponseModel ChangeLeave(List<LeaveModel> data)
+        public async Task<ResponseModel> AddListLeave(List<LeaveModel> data)
+        {
+            ResponseModel response = new ResponseModel();
+            try
+            {
+                if (data != null && data.Count > 0)
+                {
+                    var GetEmp = _cusServices.GetEmployeeInfo(data[0].id_emp);
+                    if (GetEmp.Count == 0)
+                    {
+                        throw new Exception("Data Employee Not Found");
+                    }
+                    EmployeeInfoModel emp = GetEmp.FirstOrDefault();
+                    string insert = @"INSERT INTO T_Leave (gu_id,startdate,enddate,starttime,endtime,create_date,create_by,update_date,update_by,id_type,id_emp) VALUES
+                    ('{0}', '{1}', '{2}', '{3}','{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{10}')";
+
+
+                    for (int i = 0; i < data.Count; i++)
+                    {
+                        string now = DateTime.Now.Year.ToString() + "-" + DateTime.Now.ToString("MM") + "-" + DateTime.Now.ToString("dd");
+                        DateTime Start = DateTime.ParseExact(data[i].startdate, "yyyy-MM-dd", null);
+                        DateTime dtNow = DateTime.ParseExact(now, "yyyy-MM-dd", null);
+                        if (Start.Date < dtNow.Date)
+                        {
+                            throw new Exception("กรุณาเลือกวันที่เริ่มต้นให้เท่ากับวันที่ปัจจุบัน");
+                        }
+                        bool result = false;
+                        int resleave = 0;
+                        string Msg = string.Empty;
+                        data[i].id_emp = emp.id;
+                        data[i].startdate = ConvertFullDateTime(data[i].startdate);
+                        data[i].enddate = ConvertFullDateTime(data[i].enddate);
+                        string UpdDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", new CultureInfo("en-US"));
+                        //Check Date and Time Duplicate
+                        var resCheckDTdup = CheckDateTimeDup(data[i], "ADD", ref Msg);
+                        if (resCheckDTdup && string.IsNullOrEmpty(Msg))
+                        {
+                            //insert leave then save image and insert
+                            string id_leave = Guid.NewGuid().ToString();
+                            string query = string.Format(insert, id_leave, data[i].startdate, data[i].enddate, data[i].starttime, data[i].endtime, UpdDate, emp.fname, UpdDate, emp.fname, data[i].id_type, data[i].id_emp);
+                            var con = _dbConn.GetConnection();
+                            SqlCommand cmd = new SqlCommand(query, con);
+                            resleave = await cmd.ExecuteNonQueryAsync();
+                            result = (resleave == 1) ? true : false;
+                            con.Dispose();
+                            con.Close();
+                            if (result)
+                            {
+                                //add image and insert data evidence
+                                if (data[i].Files != null && data[i].Files.Count > 0)
+                                {
+                                    // Process the files
+                                    foreach (var file in data[i].Files)
+                                    {
+                                        if (file != null && file.Length > 0)
+                                        {
+                                            string guid = Guid.NewGuid().ToString();
+                                            var fileName = guid + Path.GetExtension(file.FileName);
+
+                                            var folderPath = Path.Combine(_env.WebRootPath, "uploads");
+
+                                            if (!Directory.Exists(folderPath))
+                                                Directory.CreateDirectory(folderPath);
+
+                                            var filePath = Path.Combine(folderPath, fileName);
+
+                                            using (var stream = new FileStream(filePath, FileMode.Create))
+                                            {
+                                                await file.CopyToAsync(stream);
+                                            }
+                                            string url = _eviServices.SetUrlUploads(fileName);
+                                            string ErrMsg = "";
+                                            bool resevidence = _eviServices.SaveEvidence(url, emp.fname,id_leave, guid, fileName, ref ErrMsg);
+                                            if (!resevidence && ErrMsg != "")
+                                            {
+                                                throw new Exception(ErrMsg);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                response.status = 200;
+                                response.success = false;
+                                response.message = "Add Data LeaveInfo fail!";
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception(Msg);
+                        }
+                    }
+                    response.status = 200;
+                    response.success = true;
+                    response.message = "Add Data LeaveInfo Success!";
+                }
+                else
+                {
+                    response.status = 200;
+                    response.success = false;
+                    response.message = "Please enter leave information.";
+                }
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.status = 500;
+                response.success = false;
+                response.message = ex.Message.ToString();
+                return response;
+            }
+        }
+        public async Task<ResponseModel> ChangeLeave(List<LeaveModel> data)
         {
             var response = new ResponseModel();
             try
@@ -214,6 +336,57 @@ namespace dotnetCore_API.Services
                         else
                         {
                             throw new Exception(Msg);
+                        }
+                        
+                        var dataEvi = _eviServices.GetEvidence(data[i].gu_id);
+                        if (dataEvi != null && dataEvi.Count > 0)
+                        {
+                            string sqlDelEvidence = @"DELETE FROM T_Evidence WHERE filename = '{0}'";
+                            var folderPath = Path.Combine(_env.WebRootPath, "uploads");
+                            foreach (var item in dataEvi)
+                            {
+                                var imagePath = Path.Combine(folderPath, item.filename);
+                                if (File.Exists(imagePath))
+                                {
+                                    File.Delete(imagePath);
+                                    using (var _con = _dbConn.GetConnection())
+                                    {
+                                        SqlCommand cmd = new SqlCommand(string.Format(sqlDelEvidence, item.filename), _con);
+                                        cmd.CommandType = CommandType.Text;
+                                        cmd.ExecuteNonQuery();
+                                    };
+                                }
+                            }
+                        }
+                        if (data[i].Files != null && data[i].Files.Count > 0)
+                        {
+                            foreach (var file in data[i].Files)
+                            {
+                                if (file != null && file.Length > 0)
+                                {
+                                    string guid = Guid.NewGuid().ToString();
+                                    var fileName = guid + Path.GetExtension(file.FileName);
+
+                                    var folderPath = Path.Combine(_env.WebRootPath, "uploads");
+
+                                    if (!Directory.Exists(folderPath))
+                                        Directory.CreateDirectory(folderPath);
+
+                                    var filePath = Path.Combine(folderPath, fileName);
+
+                                    using (var stream = new FileStream(filePath, FileMode.Create))
+                                    {
+                                        await file.CopyToAsync(stream);
+                                    }
+                                    string url = _eviServices.SetUrlUploads(fileName);
+                                    string ErrSaveEviMsg = "";
+                                    bool resevidence = _eviServices.SaveEvidence(url, emp.fname, data[i].gu_id, guid, fileName, ref ErrSaveEviMsg);
+                                    if (!resevidence && ErrSaveEviMsg != "")
+                                    {
+                                        throw new Exception(ErrSaveEviMsg);
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -267,12 +440,23 @@ namespace dotnetCore_API.Services
                     }
                     EmployeeInfoModel emp = GetEmp.FirstOrDefault();
 
-                    string sqlcommand = @"DELETE FROM T_Leave WHERE gu_id = '{0}'";
+                    string sqlDelEvidence = @"DELETE FROM T_Evidence WHERE id_leave = '{0}'";
+                    var GetEvidence = _eviServices.GetEvidence(data[0].gu_id);
+                    if (GetEvidence != null && GetEvidence.Count > 0)
+                    {
+                        var _con = _dbConn.GetConnection();
+                        SqlCommand cmd = new SqlCommand(string.Format(sqlDelEvidence, data[0].gu_id), _con);
+                        cmd.CommandType = CommandType.Text;
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    string sqlDelLeave = @"DELETE FROM T_Leave WHERE gu_id = '{0}'";
                     List<string> listDelLeave = new List<string>();
 
                     for (int i = 0; i < data.Count; i++)
                     {
-                        listDelLeave.Add(string.Format(sqlcommand, data[i].gu_id));
+                        
+                        listDelLeave.Add(string.Format(sqlDelLeave, data[i].gu_id));
                     }
 
                     string ErrMsg = string.Empty;
@@ -338,7 +522,9 @@ namespace dotnetCore_API.Services
                     }
                     else
                     {
-                        Msg = $"วันที่: {ConvertShrotDateTime(data.startdate)} ถึง {ConvertShrotDateTime(data.enddate)} เวลา: {data.starttime}-{data.endtime} มีการลงลาแล้ว";
+                        string start = DateTime.ParseExact(data.startdate, "yyyy-MM-ddTHH:mm:ss.fff", null).ToString("yyyy-MM-dd");
+                        string end = DateTime.ParseExact(data.enddate, "yyyy-MM-ddTHH:mm:ss.fff", null).ToString("yyyy-MM-dd");
+                        Msg = $"วันที่: {start} ถึง {end} เวลา: {data.starttime}-{data.endtime} มีการลงลาแล้ว";
                         if (mode.ToUpper() == "EDIT")
                         {
                             Msg += " กรุณาเลือกรายการที่ต้องการแก้ไขให้ถูกต้อง";

@@ -10,5 +10,8 @@ namespace dotnetCore_API.Services.Interfaces
     public interface IEvidenceServices
     {
         public Task<ResponseModel> AddEvidence(EvidenceModel data);
+        public string SetUrlUploads(string fileName);
+        public bool SaveEvidence(string url, string fname, string id_leave,string guid,string filename, ref string ErrMsg);
+        public List<EvidenceModel> GetEvidence(string id_leave);
     }
 }

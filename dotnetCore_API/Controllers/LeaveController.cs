@@ -1,9 +1,11 @@
 ﻿using dotnetCore_API.Models;
 using dotnetCore_API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace dotnetCore_API.Controllers
 {
@@ -47,15 +49,21 @@ namespace dotnetCore_API.Controllers
         }
         [HttpPost]
         [Route("ChangeLeaveInfo")]
-        public IActionResult ChangeLeaveInfo(List<LeaveModel> data)
+        public async Task<IActionResult> ChangeLeaveInfo([FromForm] List<LeaveModel> model)
         {
-            return Ok(_leaveServices.ChangeLeave(data));
+            return Ok(await _leaveServices.ChangeLeave(model));
         }
         [HttpPost]
         [Route("DeleteLeaveInfo")]
         public IActionResult DeleteLeaveInfo(List<LeaveModel> data)
         {
             return Ok(_leaveServices.DeleteLeave(data));
+        }
+        [HttpPost]
+        [Route("AddListLeaveInfo")]
+        public async Task<IActionResult> SaveListLeaveInfo([FromForm] List<LeaveModel> model)
+        {
+            return Ok(await _leaveServices.AddListLeave(model));
         }
     }
 }

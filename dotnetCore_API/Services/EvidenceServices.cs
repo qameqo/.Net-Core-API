@@ -4,6 +4,7 @@ using dotnetCore_API.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -17,15 +18,13 @@ namespace dotnetCore_API.Services
     {
         private readonly IDBCenter _dbConn;
         private readonly IEmployeeInfoServices _cusServices;
-        private readonly ILeaveServices _leaveServices;
         private readonly IWebHostEnvironment _env;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EvidenceServices(IDBCenter dbConn, IEmployeeInfoServices cusServices, ILeaveServices leaveServices, IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor)
+        public EvidenceServices(IDBCenter dbConn, IEmployeeInfoServices cusServices, IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor)
         {
             _dbConn = dbConn;
             _cusServices = cusServices;
-            _leaveServices = leaveServices;
             _env = env;
             _httpContextAccessor = httpContextAccessor;
 
@@ -58,7 +57,7 @@ namespace dotnetCore_API.Services
                         }
                         string url = SetUrlUploads(fileName);
                         string ErrMsg = "";
-                        bool res = SaveEvidence(url,data.create_by,data.id_leave,ref ErrMsg);
+                        bool res = SaveEvidence(url,data.create_by,data.id_leave, Guid.NewGuid().ToString(), fileName, ref ErrMsg);
                         if (!res && ErrMsg != "")
                         {
                             throw new Exception(ErrMsg);
@@ -77,7 +76,7 @@ namespace dotnetCore_API.Services
             }
             return response;
         }
-        private string SetUrlUploads(string fileName)
+        public string SetUrlUploads(string fileName)
         {
             string imageUrl = "";
             if (!string.IsNullOrEmpty(fileName))
@@ -93,7 +92,7 @@ namespace dotnetCore_API.Services
             return imageUrl;
 
         }
-        private bool SaveEvidence(string url,string fname,string id_leave,ref string ErrMsg)
+        public bool SaveEvidence(string url,string fname,string id_leave,string guid,string filename, ref string ErrMsg)
         {
             bool result = false;
             try
@@ -101,12 +100,13 @@ namespace dotnetCore_API.Services
                 int res;
                 using (var con = _dbConn.GetConnection())
                 {
-                    string query = @"INSERT INTO T_Evidence (gu_id,evidence_path,create_by,create_date,update_by,update_date,id_leave)
-                    VALUES (@gu_id,@evidence_path,@crt_by,@crt_dt,@upd_by,@upd_dt,@id_leave)";
+                    string query = @"INSERT INTO T_Evidence (gu_id,evidence_path,filename,create_by,create_date,update_by,update_date,id_leave)
+                    VALUES (@gu_id,@evidence_path,@filename,@crt_by,@crt_dt,@upd_by,@upd_dt,@id_leave)";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.AddWithValue("@gu_id", Guid.NewGuid());
+                    cmd.Parameters.AddWithValue("@gu_id", guid);
                     cmd.Parameters.AddWithValue("@evidence_path", (!string.IsNullOrEmpty(url)) ? url : "");
+                    cmd.Parameters.AddWithValue("@filename", filename);
                     cmd.Parameters.AddWithValue("@crt_by", fname.Trim());
                     cmd.Parameters.AddWithValue("@crt_dt", DateTime.Now);
                     cmd.Parameters.AddWithValue("@upd_by", fname.Trim());
@@ -123,6 +123,32 @@ namespace dotnetCore_API.Services
             {
                 ErrMsg = ex.Message;
                 return result;
+            }
+        }
+        public List<EvidenceModel> GetEvidence(string id_leave)
+        {
+            try
+            {
+                var DS = new DataSet();
+                using (var con = _dbConn.GetConnection())
+                {
+                    string query = $"SELECT * FROM T_Evidence WHERE id_leave = '{id_leave}'";
+                    SqlDataAdapter cmd = new SqlDataAdapter(query, con);
+                    cmd.SelectCommand.CommandType = CommandType.Text;
+                    cmd.Fill(DS);
+                    cmd.Dispose();
+                    con.Close();
+                    //if (DS == null || DS.Tables.Count == 0 || DS.Tables[0].Rows.Count == 0)
+                    //{
+                    //    throw new Exception($"Data Not Found");
+                    //}
+                }
+                var obj = JsonConvert.SerializeObject(DS.Tables[0]);
+                return JsonConvert.DeserializeObject<List<EvidenceModel>>(obj.ToString()).OrderBy(x => x.create_date).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
     }

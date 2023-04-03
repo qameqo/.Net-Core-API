@@ -10,7 +10,8 @@ namespace dotnetCore_API.Services.Interfaces
     {
         public List<LeaveModel> GetListLeave(LeaveModel data);
         public ResponseModel AddLeave(List<LeaveModel> data);
-        public ResponseModel ChangeLeave(List<LeaveModel> data);
+        public Task<ResponseModel> ChangeLeave(List<LeaveModel> data);
         public ResponseModel DeleteLeave(List<LeaveModel> data);
+        public Task<ResponseModel> AddListLeave(List<LeaveModel> data);
     }
 }

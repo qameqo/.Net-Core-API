@@ -27,5 +27,6 @@ namespace dotnetCore_API.Models
         public string name_th { get; set; }
         public string name_eng { get; set; }
         public string description { get; set; }
+        public List<IFormFile> Files { get; set; }
     }
 }
