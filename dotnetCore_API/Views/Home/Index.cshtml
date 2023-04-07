@@ -173,9 +173,9 @@
                 var files = document.querySelector('input[type=file]').files;
                 var len = $('input:checkbox:checked'); //$('input[type=checkbox]');
                 for (var i = 0; i < len.length; i++) { //data main
-                    formData.append("model[" + i + "].startdate", "2023-04-08");
-                    formData.append("model[" + i + "].enddate", "2023-04-08");
-                    formData.append("model[" + i + "].gu_id", "e77facb6-4770-4114-90d9-13beb84cd9a9");
+                    formData.append("model[" + i + "].startdate", "2023-04-10");
+                    formData.append("model[" + i + "].enddate", "2023-04-10");
+                    //formData.append("model[" + i + "].gu_id", "e77facb6-4770-4114-90d9-13beb84cd9a9");
                     formData.append("model[" + i + "].starttime", "09:00");
                     formData.append("model[" + i + "].endtime", "18:00");
                     formData.append("model[" + i + "].id_emp", "emp5");
@@ -186,7 +186,7 @@
                 }
                 
                 $.ajax({
-                    url: "api/Leave/ChangeLeaveInfo", //"api/Leave/AddListLeaveInfo"
+                    url: "api/Leave/AddListLeaveInfo", //"api/Leave/ChangeLeaveInfo"
                     type: "POST",
                     data: formData,
                     contentType: false,

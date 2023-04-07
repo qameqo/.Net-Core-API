@@ -23,7 +23,7 @@ namespace dotnetCore_API.Controllers
 
         [HttpPost]
         [Route("GetListLeave")]
-        public IActionResult GetListLeave(LeaveModel data)
+        public IActionResult GetListLeave(GetLeaveModel data)
         {
             ResponseModel response = new ResponseModel();
             try
@@ -55,7 +55,7 @@ namespace dotnetCore_API.Controllers
         }
         [HttpPost]
         [Route("DeleteLeaveInfo")]
-        public IActionResult DeleteLeaveInfo(List<LeaveModel> data)
+        public IActionResult DeleteLeaveInfo([FromForm] List<LeaveModel> data)
         {
             return Ok(_leaveServices.DeleteLeave(data));
         }

@@ -31,7 +31,7 @@ namespace dotnetCore_API.Services
             _eviServices = eviServices;
         }
 
-        public List<LeaveModel> GetListLeave(LeaveModel data) 
+        public List<GetLeaveModel> GetListLeave(GetLeaveModel data) 
         {
             try
             {
@@ -39,12 +39,21 @@ namespace dotnetCore_API.Services
                 using (var con = _dbConn.GetConnection())
                 {
                     string command = "select a.*,b.name_th,b.name_eng,b.gu_id as type_gu_id,b.description from T_Leave as a inner join M_TypeofLeave b on b.gu_id = a.id_type";
+
+                    if (!string.IsNullOrEmpty(data.startdate))
+                    {
+                        command += $" WHERE startdate >= '{data.startdate}'";
+                    }
+                    if (!string.IsNullOrEmpty(data.enddate))
+                    {
+                        command += $" AND enddate <= '{data.enddate}'";
+                    }
                     if (!string.IsNullOrEmpty(data.id_emp))
                     {
                         var dataEmp = _cusServices.GetEmployeeInfo(data.id_emp);
                         if (dataEmp != null && dataEmp.Count > 0)
                         {
-                            command += $" WHERE a.id_emp = '{dataEmp[0].id}'";
+                            command += $" AND a.id_emp = '{dataEmp[0].id}'";
                         }
                         else
                         {
@@ -63,7 +72,7 @@ namespace dotnetCore_API.Services
                 }
                 var obj = JsonConvert.SerializeObject(DS.Tables[0]);
                 //.Where(x => DateTime.ParseExact(x.startdate, "yyyy-MM-ddTHH:mm:ss", null).Day >= DateTime.Now.Day)
-                return JsonConvert.DeserializeObject<List<LeaveModel>>(obj.ToString()).OrderByDescending(x => x.create_date).ToList();
+                return JsonConvert.DeserializeObject<List<GetLeaveModel>>(obj.ToString()).OrderByDescending(x => x.create_date).ToList();
             }
             catch (Exception ex)
             {
