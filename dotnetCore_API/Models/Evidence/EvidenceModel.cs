@@ -12,9 +12,13 @@ namespace dotnetCore_API.Models
         public string evidence_path { get; set; }
         public string filename { get; set; }
         public string create_by { get; set; }
-        public DateTime create_date { get; set; }
+        public DateTime? create_date { get; set; }
         public string update_by { get; set; }
-        public DateTime update_date { get; set; }
+        public DateTime? update_date { get; set; }
         public string id_leave { get; set; }
+    }
+    public class ChangeEvidenceModel : EvidenceModel
+    {
+        public IFormFile File { get; set; }
     }
 }

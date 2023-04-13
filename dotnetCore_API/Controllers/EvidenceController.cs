@@ -28,5 +28,11 @@ namespace dotnetCore_API.Controllers
         {
             return Ok( _eviServices.GetEvidence(data.id_leave));
         }
+        [HttpPost]
+        [Route("ChangeEvidence")]
+        public async Task<IActionResult>  ChangeEvidence([FromForm]ChangeEvidenceModel model)
+        {
+            return Ok(await _eviServices.ChangeEvidence(model));
+        }
     }
 }
