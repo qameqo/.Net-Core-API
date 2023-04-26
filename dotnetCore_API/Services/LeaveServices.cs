@@ -1,4 +1,5 @@
 ﻿using dotnetCore_API.Center.Interfaces;
+using dotnetCore_API.Common.Interfaces;
 using dotnetCore_API.Models;
 using dotnetCore_API.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
@@ -22,13 +23,15 @@ namespace dotnetCore_API.Services
         private readonly IWebHostEnvironment _env;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IEvidenceServices _eviServices;
-        public LeaveServices(IDBCenter dbConn, IEmployeeInfoServices cusServices, IWebHostEnvironment env , IHttpContextAccessor httpContextAccessor,IEvidenceServices eviServices)
+        private readonly IManageImage _mngImg;
+        public LeaveServices(IDBCenter dbConn, IEmployeeInfoServices cusServices, IWebHostEnvironment env , IHttpContextAccessor httpContextAccessor,IEvidenceServices eviServices,IManageImage mngImg)
         {
             _dbConn = dbConn;
             _cusServices = cusServices;
             _env = env;
             _httpContextAccessor = httpContextAccessor;
             _eviServices = eviServices;
+            _mngImg = mngImg;
         }
 
         public List<GetLeaveModel> GetListLeave(GetLeaveModel data) 
@@ -249,20 +252,18 @@ namespace dotnetCore_API.Services
                                         {
                                             string guid = Guid.NewGuid().ToString();
                                             var fileName = guid + Path.GetExtension(file.FileName);
-
-                                            var folderPath = Path.Combine(_env.WebRootPath, "uploads");
-
-                                            if (!Directory.Exists(folderPath))
-                                                Directory.CreateDirectory(folderPath);
-
-                                            var filePath = Path.Combine(folderPath, fileName);
-
-                                            using (var stream = new FileStream(filePath, FileMode.Create))
-                                            {
-                                                await file.CopyToAsync(stream);
-                                            }
-                                            string url = _eviServices.SetUrlUploads(fileName);
                                             string ErrMsg = "";
+
+                                            var folderPath = _mngImg.FolderPath("uploads");
+
+                                            string filepath = Path.Combine(folderPath, fileName);
+                                            var resUploadImage = _mngImg.UploadImage(filepath, file, ErrMsg);
+                                            if (!resUploadImage.Result.Item1 && !string.IsNullOrEmpty(resUploadImage.Result.Item2))
+                                            {
+                                                throw new Exception(resUploadImage.Result.Item2);
+                                            }
+
+                                            string url = _eviServices.SetUrlUploads(fileName);
                                             bool resevidence = _eviServices.SaveEvidence(url, emp.fname,id_leave, guid, fileName, ref ErrMsg);
                                             if (!resevidence && ErrMsg != "")
                                             {
@@ -354,10 +355,14 @@ namespace dotnetCore_API.Services
                             var folderPath = Path.Combine(_env.WebRootPath, "uploads");
                             foreach (var item in dataEvi)
                             {
-                                var imagePath = Path.Combine(folderPath, item.filename);
-                                if (File.Exists(imagePath))
+                                string MsgErr = "";
+                                var resDeleteImage = _mngImg.DeleteImage(item.filename, folderPath, ref MsgErr);
+                                if (!resDeleteImage && !string.IsNullOrEmpty(MsgErr))
                                 {
-                                    File.Delete(imagePath);
+                                    throw new Exception(MsgErr);
+                                }
+                                else
+                                {
                                     using (var _con = _dbConn.GetConnection())
                                     {
                                         SqlCommand cmd = new SqlCommand(string.Format(sqlDelEvidence, item.filename), _con);
@@ -375,20 +380,18 @@ namespace dotnetCore_API.Services
                                 {
                                     string guid = Guid.NewGuid().ToString();
                                     var fileName = guid + Path.GetExtension(file.FileName);
-
-                                    var folderPath = Path.Combine(_env.WebRootPath, "uploads");
-
-                                    if (!Directory.Exists(folderPath))
-                                        Directory.CreateDirectory(folderPath);
-
-                                    var filePath = Path.Combine(folderPath, fileName);
-
-                                    using (var stream = new FileStream(filePath, FileMode.Create))
-                                    {
-                                        await file.CopyToAsync(stream);
-                                    }
-                                    string url = _eviServices.SetUrlUploads(fileName);
                                     string ErrSaveEviMsg = "";
+
+                                    var folderPath = _mngImg.FolderPath("uploads");
+
+                                    string filepath = Path.Combine(folderPath, fileName);
+                                    var resUploadImage = _mngImg.UploadImage(filepath, file, ErrSaveEviMsg);
+                                    if (!resUploadImage.Result.Item1 && !string.IsNullOrEmpty(resUploadImage.Result.Item2))
+                                    {
+                                        throw new Exception(resUploadImage.Result.Item2);
+                                    }
+
+                                    string url = _eviServices.SetUrlUploads(fileName);
                                     bool resevidence = _eviServices.SaveEvidence(url, emp.fname, data[i].gu_id, guid, fileName, ref ErrSaveEviMsg);
                                     if (!resevidence && ErrSaveEviMsg != "")
                                     {

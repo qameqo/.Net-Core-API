@@ -1,4 +1,5 @@
-﻿using dotnetCore_API.Models;
+﻿using dotnetCore_API.Common;
+using dotnetCore_API.Models;
 using dotnetCore_API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -33,6 +34,12 @@ namespace dotnetCore_API.Controllers
         public async Task<IActionResult>  ChangeEvidence([FromForm]ChangeEvidenceModel model)
         {
             return Ok(await _eviServices.ChangeEvidence(model));
+        }
+        [HttpPost]
+        [Route("DeleteEvidence")]
+        public IActionResult DeleteEvidence(EvidenceModel model)
+        {
+            return Ok(_eviServices.RemoveEvidence(model));
         }
     }
 }

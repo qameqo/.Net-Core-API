@@ -15,5 +15,7 @@ namespace dotnetCore_API.Services.Interfaces
         public List<EvidenceModel> GetEvidence(string id_leave);
         public Task<ResponseModel> ChangeEvidence(ChangeEvidenceModel model);
         public List<EvidenceModel> GetEvidenceByGuid(string gu_id);
+        public bool DeleteEvidence(string guid, ref string ErrMsg);
+        public ResponseModel RemoveEvidence(EvidenceModel model);
     }
 }

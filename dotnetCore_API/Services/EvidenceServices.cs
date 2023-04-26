@@ -1,4 +1,6 @@
 ﻿using dotnetCore_API.Center.Interfaces;
+using dotnetCore_API.Common;
+using dotnetCore_API.Common.Interfaces;
 using dotnetCore_API.Models;
 using dotnetCore_API.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
@@ -21,13 +23,15 @@ namespace dotnetCore_API.Services
         private readonly IEmployeeInfoServices _cusServices;
         private readonly IWebHostEnvironment _env;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IManageImage _mngImg; 
 
-        public EvidenceServices(IDBCenter dbConn, IEmployeeInfoServices cusServices, IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor)
+        public EvidenceServices(IDBCenter dbConn, IEmployeeInfoServices cusServices, IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor, IManageImage mngImg)
         {
             _dbConn = dbConn;
             _cusServices = cusServices;
             _env = env;
             _httpContextAccessor = httpContextAccessor;
+            _mngImg = mngImg;
 
         }
         public string SetUrlUploads(string fileName)
@@ -104,6 +108,30 @@ namespace dotnetCore_API.Services
                 return result;
             }
         }
+        public bool DeleteEvidence(string guid, ref string ErrMsg)
+        {
+            bool result = false;
+            try
+            {
+                int res;
+                using (var con = _dbConn.GetConnection())
+                {
+                    string query = $" DELETE FROM T_Evidence WHERE gu_id = '{guid}'";
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    cmd.CommandType = CommandType.Text;
+                    res = cmd.ExecuteNonQuery();
+                    result = (res == 1) ? true : false;
+                    con.Dispose();
+                    con.Close();
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                ErrMsg = ex.Message;
+                return result;
+            }
+        }
         public List<EvidenceModel> GetEvidence(string id_leave)
         {
             try
@@ -155,24 +183,22 @@ namespace dotnetCore_API.Services
         public async Task<ResponseModel> ChangeEvidence(ChangeEvidenceModel model)
         {
             var res = new ResponseModel();
+            string MsgErr = "";
             try
             {
                 if (model != null)
                 {
                     if (model.File != null && model.File.Length > 0)
                     {
-                        var folderPath = Path.Combine(_env.WebRootPath, "uploads");
-
-                        if (!Directory.Exists(folderPath))
-                            Directory.CreateDirectory(folderPath);
-
+                        var folderPath = _mngImg.FolderPath("uploads");
+                        
                         var getEvi = GetEvidenceByGuid(model.gu_id);
                         if (getEvi != null && getEvi.Count > 0)
                         {
-                            var imagePath = Path.Combine(folderPath, getEvi[0].filename);
-                            if (File.Exists(imagePath))
+                            var resDeleteImage = _mngImg.DeleteImage(getEvi[0].filename,folderPath,ref MsgErr);
+                            if (!resDeleteImage && !string.IsNullOrEmpty(MsgErr))
                             {
-                                File.Delete(imagePath);
+                                throw new Exception(MsgErr);
                             }
                         }
                         else
@@ -180,13 +206,15 @@ namespace dotnetCore_API.Services
                             throw new Exception("Data Evidence is Null");
                         }
 
-                        var filePath = Path.Combine(folderPath, getEvi[0].filename);
-
-                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        MsgErr = "";
+                        string filepath = Path.Combine(folderPath, getEvi[0].filename);
+                        var resUploadImage = _mngImg.UploadImage(filepath, model.File, MsgErr);
+                        if (!resUploadImage.Result.Item1 && !string.IsNullOrEmpty(resUploadImage.Result.Item2))
                         {
-                            await model.File.CopyToAsync(stream);
+                            throw new Exception(resUploadImage.Result.Item2);
                         }
-                        
+
+
                         string ErrEviMsg = "";
                         bool resevidence = UpdateEvidence(model.gu_id, model.update_by, ref ErrEviMsg);
                         if (!resevidence && ErrEviMsg != "")
@@ -198,6 +226,63 @@ namespace dotnetCore_API.Services
                             res.status = 200;
                             res.success = true;
                             res.message = "Change Image Success!";
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Data File Image is Null");
+                    }
+                }
+                else
+                {
+                    throw new Exception("Please Enter Data Evidence");
+                }
+            }
+            catch (Exception ex)
+            {
+                res.status = 500;
+                res.success = false;
+                res.message = ex.Message;
+            }
+
+            return res;
+        }
+        public ResponseModel RemoveEvidence(EvidenceModel model)
+        {
+            var res = new ResponseModel();
+            try
+            {
+                if (model != null)
+                {
+                    if (!string.IsNullOrEmpty(model.gu_id))
+                    {
+                        var folderPath = _mngImg.FolderPath("uploads");
+
+                        var getEvi = GetEvidenceByGuid(model.gu_id);
+                        if (getEvi != null && getEvi.Count > 0)
+                        {
+                            string MsgErr = "";
+                            var resDeleteImage = _mngImg.DeleteImage(getEvi[0].filename, folderPath, ref MsgErr);
+                            if (!resDeleteImage && !string.IsNullOrEmpty(MsgErr))
+                            {
+                                throw new Exception(MsgErr);
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("Data Evidence is Null");
+                        }
+                        string ErrEviMsg = "";
+                        bool resevidence = DeleteEvidence(model.gu_id, ref ErrEviMsg);
+                        if (!resevidence && ErrEviMsg != "")
+                        {
+                            throw new Exception(ErrEviMsg);
+                        }
+                        else
+                        {
+                            res.status = 200;
+                            res.success = true;
+                            res.message = "Delete Image Success!";
                         }
                     }
                     else

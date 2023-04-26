@@ -242,7 +242,7 @@ namespace dotnetCore_API
         public static void AddAutoTransient(this IServiceCollection services)
         {
             List<Type> allType = new List<Type>();
-            List<string> nsRange = new List<string> { "dotnetCore_API.Services" };
+            List<string> nsRange = new List<string> { "dotnetCore_API.Services", "dotnetCore_API.Common" };
             nsRange.ForEach(n =>
             {
                 var tmp = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace != null && t.Namespace.StartsWith(n)).Where(t => t.IsClass && !t.IsAbstract && t.IsPublic).ToList();
@@ -252,8 +252,7 @@ namespace dotnetCore_API
                                         .Where(t => t.Namespace != null && t.Namespace.StartsWith(n))
                                         //.Where(t => t.Namespace != null && !t.Namespace.EndsWith(".Common") && !t.Namespace.EndsWith(".MicroServices") && !t.Namespace.EndsWith(".Entities"))
                                         .Where(t =>
-                                            t.Namespace != null &&
-                                            !t.Namespace.EndsWith(".Common") &&
+                                            t.Namespace != null && (t.Namespace.EndsWith(".Common") || t.Namespace.EndsWith(".Services")) &&
                                             //!t.Namespace.EndsWith(".MicroServices") &&
                                             !t.Namespace.EndsWith(".Entities")
                                         )
