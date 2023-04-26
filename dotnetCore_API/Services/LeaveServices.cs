@@ -305,7 +305,7 @@ namespace dotnetCore_API.Services
                 return response;
             }
         }
-        public async Task<ResponseModel> ChangeLeave(List<LeaveModel> data)
+        public ResponseModel ChangeLeave(List<LeaveModel> data)
         {
             var response = new ResponseModel();
             try

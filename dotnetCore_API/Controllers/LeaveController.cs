@@ -49,9 +49,9 @@ namespace dotnetCore_API.Controllers
         }
         [HttpPost]
         [Route("ChangeLeaveInfo")]
-        public async Task<IActionResult> ChangeLeaveInfo([FromForm] List<LeaveModel> model)
+        public IActionResult ChangeLeaveInfo([FromForm] List<LeaveModel> model)
         {
-            return Ok(await _leaveServices.ChangeLeave(model));
+            return Ok(_leaveServices.ChangeLeave(model));
         }
         [HttpPost]
         [Route("DeleteLeaveInfo")]

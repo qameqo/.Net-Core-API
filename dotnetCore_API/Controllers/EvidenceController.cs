@@ -31,9 +31,9 @@ namespace dotnetCore_API.Controllers
         }
         [HttpPost]
         [Route("ChangeEvidence")]
-        public async Task<IActionResult>  ChangeEvidence([FromForm]ChangeEvidenceModel model)
+        public IActionResult  ChangeEvidence([FromForm]ChangeEvidenceModel model)
         {
-            return Ok(await _eviServices.ChangeEvidence(model));
+            return Ok( _eviServices.ChangeEvidence(model));
         }
         [HttpPost]
         [Route("DeleteEvidence")]

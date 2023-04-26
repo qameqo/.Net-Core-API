@@ -180,7 +180,7 @@ namespace dotnetCore_API.Services
                 throw ex;
             }
         }
-        public async Task<ResponseModel> ChangeEvidence(ChangeEvidenceModel model)
+        public ResponseModel ChangeEvidence(ChangeEvidenceModel model)
         {
             var res = new ResponseModel();
             string MsgErr = "";
