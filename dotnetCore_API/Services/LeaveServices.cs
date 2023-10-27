@@ -53,7 +53,8 @@ namespace dotnetCore_API.Services
                     }
                     if (!string.IsNullOrEmpty(data.id_emp))
                     {
-                        var dataEmp = _cusServices.GetEmployeeInfo(data.id_emp);
+                        EmployeeInfoModel model = new EmployeeInfoModel();
+                        var dataEmp = _cusServices.GetEmployeeInfo(model);
                         if (dataEmp != null && dataEmp.Count > 0)
                         {
                             command += $" AND a.id_emp = '{dataEmp[0].id}'";
@@ -89,7 +90,9 @@ namespace dotnetCore_API.Services
             {
                 if (data != null && data.Count > 0)
                 {
-                    var GetEmp = _cusServices.GetEmployeeInfo(data[0].id_emp);
+                    EmployeeInfoModel model = new EmployeeInfoModel();
+                    model.id_emp = data[0].id_emp;
+                    var GetEmp = _cusServices.GetEmployeeInfo(model);
                     if (GetEmp.Count == 0)
                     {
                         throw new Exception("Data Employee Not Found");
@@ -201,7 +204,9 @@ namespace dotnetCore_API.Services
             {
                 if (data != null && data.Count > 0)
                 {
-                    var GetEmp = _cusServices.GetEmployeeInfo(data[0].id_emp);
+                    EmployeeInfoModel model = new EmployeeInfoModel();
+                    model.id_emp = data[0].id_emp;
+                    var GetEmp = _cusServices.GetEmployeeInfo(model);
                     if (GetEmp.Count == 0)
                     {
                         throw new Exception("Data Employee Not Found");
@@ -312,7 +317,9 @@ namespace dotnetCore_API.Services
             {
                 if (data != null && data.Count > 0)
                 {
-                    var GetEmp = _cusServices.GetEmployeeInfo(data[0].id_emp);
+                    EmployeeInfoModel model = new EmployeeInfoModel();
+                    model.id_emp = data[0].id_emp;
+                    var GetEmp = _cusServices.GetEmployeeInfo(model);
                     if (GetEmp.Count == 0)
                     {
                         throw new Exception("Data Employee Not Found");
@@ -445,7 +452,9 @@ namespace dotnetCore_API.Services
             {
                 if (data != null && data.Count > 0)
                 {
-                    var GetEmp = _cusServices.GetEmployeeInfo(data[0].id_emp);
+                    EmployeeInfoModel model = new EmployeeInfoModel();
+                    model.id_emp = data[0].id_emp;
+                    var GetEmp = _cusServices.GetEmployeeInfo(model);
                     if (GetEmp.Count == 0)
                     {
                         throw new Exception("Data Employee Not Found");

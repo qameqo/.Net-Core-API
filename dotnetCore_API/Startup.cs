@@ -55,15 +55,9 @@ namespace dotnetCore_API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddCors();
             services.AddMvc();
-            services.AddCors(o =>
-            {
-                o.AddPolicy("CorsPolicy",
-                    builder => builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader());
-            });
+            services.AddCors(o => { o.AddPolicy("CorsPolicy",builder => { builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();});});
+            //services.AddCors(options => { options.AddPolicy("Cors",policy => { policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); }); });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("V1", new OpenApiInfo { Title = $"{assmName} - {_assEnv}", Version = "V1" });
@@ -147,6 +141,7 @@ namespace dotnetCore_API
                 });
 
             }
+            app.UseCors("CorsPolicy");
 
             app.UseHttpsRedirection();
 
@@ -162,7 +157,6 @@ namespace dotnetCore_API
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            app.UseCors("CorsPolicy");
             app.UseStaticFiles();
         }
     }

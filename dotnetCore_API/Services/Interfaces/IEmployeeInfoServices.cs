@@ -9,7 +9,7 @@ namespace dotnetCore_API.Services.Interfaces
 {
     public interface IEmployeeInfoServices
     {
-        public List<EmployeeInfoModel> GetEmployeeInfo(string idCard);
+        public List<EmployeeInfoModel> GetEmployeeInfo(EmployeeInfoModel data);
         public Task<ResponseModel> AddEmployeeInfo(EmployeeInfoModel data);
         public Task<ResponseModel> ChangeEmployeeInfo(EmployeeInfoModel data);
         public Task<ResponseModel> DeleteEmployeeInfo(EmployeeInfoModel data);

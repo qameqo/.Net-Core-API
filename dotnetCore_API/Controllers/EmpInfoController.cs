@@ -34,7 +34,7 @@ namespace dotnetCore_API.Controllers
             var response = new ResponseModel();
             try
             {
-                response.data = _cusServices.GetEmployeeInfo(data.id_emp);
+                response.data = _cusServices.GetEmployeeInfo(data);
                 response.success = true;
                 response.status = 200;
                 return Ok(response);

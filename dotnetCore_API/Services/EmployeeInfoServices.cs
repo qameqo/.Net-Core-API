@@ -20,7 +20,7 @@ namespace dotnetCore_API.Services
             _dbConn = dbConn;
         }
 
-        public List<EmployeeInfoModel> GetEmployeeInfo(string idEmp) 
+        public List<EmployeeInfoModel> GetEmployeeInfo(EmployeeInfoModel data) 
         {
             try
             {
@@ -28,9 +28,13 @@ namespace dotnetCore_API.Services
                 using (var con = _dbConn.GetConnection())
                 {
                     string query = @"SELECT * FROM Employee_Info WHERE del = ''";
-                    if (!string.IsNullOrEmpty(idEmp))
+                    if (!string.IsNullOrEmpty(data.id_emp))
                     {
-                        query += $" AND id_emp = '{idEmp}'";
+                        query += $" AND id_emp = '{data.id_emp}'";
+                    }
+                    if (!string.IsNullOrEmpty(data.id_card))
+                    {   
+                        query += $" AND id_card = '{data.id_card}'";
                     }
                     SqlDataAdapter cmd = new SqlDataAdapter(query, con);
                     cmd.SelectCommand.CommandType = CommandType.Text;
@@ -55,7 +59,7 @@ namespace dotnetCore_API.Services
             var response = new ResponseModel();
             try
             {
-                var GetlatestEmp = GetEmployeeInfo("");
+                var GetlatestEmp = GetEmployeeInfo(data);
                 var lastEmp = GetlatestEmp.OrderByDescending(x => x.create_date).FirstOrDefault();
                 string emp =  lastEmp.id_emp.Substring(0,3);
                 int number = int.Parse(lastEmp.id_emp.Substring(3));
